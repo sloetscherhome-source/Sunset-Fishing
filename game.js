@@ -3,6 +3,19 @@
 // progress saves to localStorage as you play (per browser, per computer) —
 // see "Save / restore" near the bottom of this file.
 
+// bumped on every published update — a save from any other version is wiped
+// on load, so everyone starts fresh once after each update
+const SAVE_VERSION = 3;
+(function resetSaveIfOutdated() {
+  try {
+    if (localStorage.getItem('sunsetFishing.saveVersion') === String(SAVE_VERSION)) return;
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith('sunsetFishing.'))
+      .forEach((k) => localStorage.removeItem(k));
+    localStorage.setItem('sunsetFishing.saveVersion', String(SAVE_VERSION));
+  } catch (e) { /* localStorage unavailable — nothing saved to reset */ }
+})();
+
 const W = 460, H = 740;
 const scoreEl = document.getElementById('score');
 // the on-screen message text was removed (top-right now hosts the manual
