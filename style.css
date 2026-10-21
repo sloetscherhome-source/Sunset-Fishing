@@ -1,0 +1,1531 @@
+* { box-sizing: border-box; }
+
+/* toon/cel-shaded UI skin — flat saturated colors, thick ink outlines, and
+   hard offset "sticker" shadows instead of soft blurred ones, to match the
+   cel-shaded 3D scene. Buttons press toward their shadow on :active. */
+:root {
+  --ink: #1a1410;
+  --ink-soft: #2a2018;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* kraken warning build-up — darkens toward the edges, opacity driven directly
+   from JS each frame (not a CSS transition) since it tracks a continuously
+   ramping value, not a simple on/off toggle */
+#krakenVignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 15;
+  background: radial-gradient(circle, rgba(0,0,0,0) 38%, rgba(0,0,0,0.75) 100%);
+  opacity: 0;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #111;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#wrap {
+  position: relative;
+  display: inline-block;
+  width: min(100vw, calc(100vh * 460 / 740));
+  height: min(100vh, calc(100vw * 740 / 460));
+  box-shadow: 0 0 0 5px #000, 0 10px 40px rgba(0,0,0,0.6);
+  border-radius: 4px;
+  overflow: hidden;
+  touch-action: none;
+  -webkit-touch-callout: none;
+}
+
+@supports (height: 100dvh) {
+  #wrap {
+    width: min(100vw, calc(100dvh * 460 / 740));
+    height: min(100dvh, calc(100vw * 740 / 460));
+  }
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  touch-action: none;
+}
+
+#hud {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  font-weight: bold;
+}
+
+#scoreColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+#score {
+  font-size: 20px;
+  background: #1c4f70;
+  border: 3px solid var(--ink);
+  padding: 5px 12px;
+  border-radius: 10px;
+  pointer-events: auto;
+  cursor: default;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.45);
+}
+
+#challengeTimer {
+  display: none;
+  font-size: 13px;
+  background: #4a3a10;
+  border: 2.5px solid var(--ink);
+  padding: 3px 10px;
+  border-radius: 8px;
+  color: #ffd257;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+}
+
+#challengeTimer.show {
+  display: block;
+}
+
+#score.negative {
+  color: #ff8a8a;
+}
+
+/* overdue-loan warning — stays up until the loan is repaid or collected */
+#loanWarning {
+  display: none;
+  max-width: 220px;
+  font-size: 12px;
+  line-height: 1.3;
+  background: #6e1a1a;
+  border: 2.5px solid var(--ink);
+  padding: 4px 10px;
+  border-radius: 8px;
+  color: #ffe1e1;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+  animation: loanWarningPulse 1.2s ease-in-out infinite;
+}
+
+#loanWarning.show {
+  display: block;
+}
+
+@keyframes loanWarningPulse {
+  0%, 100% { background: #6e1a1a; }
+  50% { background: #9c2424; }
+}
+
+#messageColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+#toolSwapButton {
+  pointer-events: auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2.5px solid var(--ink);
+  background: #2c5c80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 17px;
+  padding: 0;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.45);
+  transition: background 0.2s ease, transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+#toolSwapButton:hover {
+  background: #366f98;
+}
+
+#toolSwapButton:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 rgba(0,0,0,0.45);
+}
+
+/* same shape/size as the fanned-out .menu-stack-btn icons, just always visible */
+#manualButton {
+  pointer-events: auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 3px solid var(--ink);
+  background: #2c5c80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 20px;
+  padding: 0;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.45);
+  transition: background 0.2s ease, transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+#manualButton:hover {
+  background: #366f98;
+}
+
+#manualButton:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 rgba(0,0,0,0.45);
+}
+
+#reelUI, #netReelUI, #krakenUI, #krakenFrenzyUI {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0,0,0,0.4);
+  padding: 14px 18px;
+  border-radius: 12px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.kraken-track {
+  position: relative;
+  width: 280px;
+  height: 40px;
+  background: rgba(30, 15, 45, 0.6);
+  border: 2px solid rgba(200,150,255,0.5);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.kraken-heave-zone {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 50%;
+  width: 26%;
+  margin-left: -13%;
+  background: rgba(90, 220, 130, 0.3);
+  border-left: 2px solid #6bf0a0;
+  border-right: 2px solid #6bf0a0;
+  transition: width 0.2s ease, margin-left 0.2s ease;
+}
+
+.kraken-marker {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  width: 6px;
+  margin-left: -3px;
+  background: #d89aff;
+  border-radius: 3px;
+  box-shadow: 0 0 8px rgba(216,154,255,0.8);
+  /* no transition — this moves every frame in Heave mode, and any smoothing
+     here makes the displayed position lag behind the value hit-detection
+     actually checks, so a click can look like a miss (or a hit) that it isn't */
+}
+
+.kraken-buttons {
+  display: flex;
+  gap: 10px;
+  width: 280px;
+}
+
+.kraken-tap-btn {
+  flex: 1;
+  background: #9a5be0;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  padding: 12px 10px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #f4ecff;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.kraken-tap-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 rgba(0,0,0,0.4);
+}
+
+.kraken-heave-btn {
+  width: 280px;
+}
+
+.kraken-heave-btn:disabled {
+  background: rgba(255,255,255,0.12);
+  color: #7a8894;
+  cursor: default;
+  border-color: var(--ink-soft);
+  box-shadow: none;
+  transform: none;
+}
+
+.kraken-prompt-glyph {
+  font-size: 42px;
+  line-height: 1;
+  color: #d89aff;
+  text-shadow: 0 0 14px rgba(216,154,255,0.8);
+}
+
+.kraken-frenzy-timer-track {
+  position: relative;
+  width: 200px;
+  height: 8px;
+  background: rgba(30, 15, 45, 0.6);
+  border: 2px solid rgba(200,150,255,0.5);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.kraken-frenzy-timer-fill {
+  position: absolute;
+  top: 0; bottom: 0; right: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #ff6b6b, #ffb84d);
+  transition: width 0.05s linear;
+}
+
+.kraken-frenzy-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 52px);
+  grid-template-rows: repeat(2, 52px);
+  gap: 6px;
+  justify-content: center;
+}
+
+.kraken-dir-btn {
+  background: rgba(255,255,255,0.14);
+  border: 2.5px solid var(--ink);
+  border-radius: 10px;
+  color: #f4ecff;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+}
+
+.kraken-dir-btn[data-dir="up"] { grid-column: 2; grid-row: 1; }
+.kraken-dir-btn[data-dir="left"] { grid-column: 1; grid-row: 2; }
+.kraken-dir-btn[data-dir="down"] { grid-column: 2; grid-row: 2; }
+.kraken-dir-btn[data-dir="right"] { grid-column: 3; grid-row: 2; }
+
+.kraken-dir-btn.active {
+  background: #9a5be0;
+  border-color: var(--ink);
+  box-shadow: 0 0 14px rgba(216,154,255,0.8), 2px 2px 0 rgba(0,0,0,0.4);
+  transform: scale(1.08);
+}
+
+.kraken-dir-btn:active {
+  transform: scale(0.92);
+}
+
+.swoop-track {
+  position: relative;
+  width: 260px;
+  height: 54px;
+  background: rgba(20, 40, 70, 0.55);
+  border: 2px solid rgba(255,255,255,0.5);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.swoop-fish {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  width: 14px;
+  margin-left: -7px;
+  background: #ffb84d;
+  border: 2px solid #fff4de;
+  border-radius: 5px;
+}
+
+.swoop-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 66px;
+  margin-left: -33px;
+  background: rgba(90, 220, 130, 0.35);
+  border-left: 3px solid #6bf0a0;
+  border-right: 3px solid #6bf0a0;
+}
+
+.swoop-progress-track {
+  position: relative;
+  width: 260px;
+  height: 16px;
+  background: rgba(20, 40, 70, 0.55);
+  border: 2px solid rgba(255,255,255,0.5);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.swoop-progress-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 35%;
+  background: linear-gradient(90deg, #ffd257, #ff9a3d);
+}
+
+.reel-label {
+  color: #fff;
+  font-weight: bold;
+  font-size: 15px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+
+.reel-row {
+  display: flex;
+  gap: 10px;
+}
+
+.reel-track {
+  position: relative;
+  width: 54px;
+  height: 260px;
+  background: rgba(20, 40, 70, 0.55);
+  border: 2px solid rgba(255,255,255,0.5);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.reel-fish {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  height: 14px;
+  margin-top: -7px;
+  background: #ffb84d;
+  border: 2px solid #fff4de;
+  border-radius: 5px;
+}
+
+.reel-zone {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 66px;
+  margin-top: -33px;
+  background: rgba(90, 220, 130, 0.35);
+  border-top: 3px solid #6bf0a0;
+  border-bottom: 3px solid #6bf0a0;
+}
+
+.reel-progress-track {
+  position: relative;
+  width: 16px;
+  height: 260px;
+  background: rgba(20, 40, 70, 0.55);
+  border: 2px solid rgba(255,255,255,0.5);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.reel-progress-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 35%;
+  background: linear-gradient(#ffd257, #ff9a3d);
+}
+
+#catchPopup {
+  position: absolute;
+  top: 32%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.7);
+  pointer-events: none;
+  color: #fff;
+  font-weight: bold;
+  font-size: 22px;
+  text-align: center;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.85), 0 0 18px rgba(0,0,0,0.5);
+  opacity: 0;
+  transition: opacity 0.35s ease, transform 0.35s ease, top 1.4s ease;
+  white-space: nowrap;
+}
+
+#catchPopup.junk {
+  color: #d8cdb8;
+  font-size: 18px;
+}
+
+#menuButton {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 3px solid var(--ink);
+  background: #2c5c80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 30;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.45);
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.12s ease;
+}
+
+#menuButton:hover {
+  background: #366f98;
+}
+
+#menuButton.active {
+  transform: translateX(-50%) rotate(90deg);
+}
+
+#menuButton:active {
+  box-shadow: 1px 1px 0 rgba(0,0,0,0.45);
+}
+
+#menuBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0);
+  z-index: 20;
+  display: none;
+}
+
+#menuBackdrop.open {
+  display: block;
+}
+
+/* a self-wrapping grid rather than fixed per-slot coordinates, so it scales
+   automatically as buttons are added or removed (nothing to renumber).
+   wrap-reverse stacks new rows upward, closest row-1 (earliest buttons)
+   nearest the main menu button. */
+#menuStack {
+  position: absolute;
+  left: 50%;
+  bottom: 78px;
+  transform: translateX(-50%);
+  width: 214px;
+  display: flex;
+  flex-flow: row wrap-reverse;
+  justify-content: center;
+  gap: 10px;
+  z-index: 28;
+  pointer-events: none;
+}
+
+.menu-stack-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 2.5px solid var(--ink);
+  background: #2c5c80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.45);
+  opacity: 0;
+  transform: scale(0.4);
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.34s cubic-bezier(0.3, 1.2, 0.4, 1), background 0.2s ease;
+}
+
+.menu-stack-btn:hover {
+  background: #366f98;
+}
+
+#menuStack.open .menu-stack-btn {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  transition-delay: calc(var(--i, 0) * 0.03s);
+}
+
+#menuStack.open .menu-stack-btn:active {
+  transform: scale(0.88);
+  box-shadow: 0 0 0 rgba(0,0,0,0.45);
+}
+
+.menu-stack-btn.unavailable {
+  display: none;
+}
+
+#blackMarketButton {
+  background: #3a0e10;
+  border-color: var(--ink);
+}
+
+#blackMarketButton:hover {
+  background: #4e1316;
+}
+
+#challengesButton {
+  background: #4a3a10;
+  border-color: var(--ink);
+}
+
+#challengesButton:hover {
+  background: #5e4a14;
+}
+
+#menuStack.open .menu-stack-btn.locked {
+  opacity: 0.5;
+  filter: grayscale(0.7);
+}
+
+#challengesList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  overflow-anchor: none;
+}
+
+#catalogPanel, #logPanel, #sellPanel, #foodPanel, #equipmentPanel, #bankPanel, #hirePanel, #gamblingPanel, #challengesPanel, #blackMarketPanel {
+  position: absolute;
+  left: 50%;
+  bottom: 78px;
+  width: 420px;
+  max-width: calc(100% - 24px);
+  max-height: 60%;
+  transform: translateX(-50%) scale(0.85) translateY(12px);
+  transform-origin: bottom center;
+  background: rgba(16,26,36,0.94);
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  padding: 12px 14px 16px;
+  z-index: 25;
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.2), opacity 0.22s ease;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 5px 5px 0 rgba(0,0,0,0.45);
+}
+
+#catalogPanel.open, #logPanel.open, #sellPanel.open, #foodPanel.open, #equipmentPanel.open, #bankPanel.open, #hirePanel.open, #gamblingPanel.open, #challengesPanel.open, #blackMarketPanel.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) scale(1) translateY(0);
+}
+
+#blackMarketPanel {
+  background: #241012;
+  border: 3px solid var(--ink);
+  box-shadow: 5px 5px 0 rgba(0,0,0,0.6), 0 0 18px rgba(184,30,30,0.25);
+}
+
+#blackMarketPanel .panel-header {
+  color: #e8b4b4;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.03em;
+}
+
+#blackMarketStats {
+  color: #d8c2c2;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+  font-family: 'Courier New', monospace;
+}
+
+#blackMarketStats b {
+  color: #e0a13f;
+}
+
+#blackMarketStats .sell-breakdown {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #a87a7a;
+  font-style: italic;
+}
+
+#blackMarketSellButton {
+  background: #7a1f1f;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: bold;
+  color: #f0d8d8;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.04em;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.5);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+#blackMarketSellButton:disabled {
+  background: rgba(255,255,255,0.08);
+  color: #6a5a5a;
+  cursor: default;
+  border-color: var(--ink);
+  box-shadow: none;
+}
+
+#blackMarketSellButton:not(:disabled):active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 rgba(0,0,0,0.5);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  color: #fff;
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+#catalogProgress, #logCount {
+  font-size: 12px;
+  font-weight: normal;
+  color: #b9c6d4;
+}
+
+#catalogGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.catalog-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  padding: 6px 4px 8px;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+}
+
+.catalog-slot.locked {
+  background: rgba(255,255,255,0.03);
+  border-color: var(--ink-soft);
+  box-shadow: none;
+}
+
+.catalog-icon {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.catalog-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.catalog-name {
+  margin-top: 4px;
+  font-size: 10.5px;
+  color: #e8edf2;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.catalog-slot.locked .catalog-name {
+  color: #8a97a3;
+}
+
+.catalog-slot.junk .catalog-name {
+  color: #d8cdb8;
+}
+
+.catalog-rarity {
+  margin-top: 2px;
+  font-size: 9px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+#logList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+#logList .log-empty {
+  color: #8a97a3;
+  font-size: 13px;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.log-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  padding: 6px 10px;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+}
+
+.log-icon {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+}
+
+.log-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.log-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.log-name {
+  color: #fff;
+  font-size: 13px;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.log-rarity {
+  font-size: 9px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.log-weight {
+  font-size: 13px;
+  color: #d8e0e8;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.log-row.sold {
+  opacity: 0.45;
+}
+
+.log-sold-tag {
+  font-size: 9px;
+  color: #7a8894;
+  text-transform: uppercase;
+}
+
+#sellStats {
+  color: #e8edf2;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+#sellStats b {
+  color: #ffd257;
+}
+
+#sellStats .sell-breakdown {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #9fb0bd;
+}
+
+#sellButton {
+  background: #ffc93f;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: bold;
+  color: #4a2e05;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+#sellButton:disabled {
+  background: rgba(255,255,255,0.12);
+  color: #7a8894;
+  cursor: default;
+  border-color: var(--ink-soft);
+  box-shadow: none;
+}
+
+#sellButton:not(:disabled):active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 rgba(0,0,0,0.4);
+}
+
+#foodList, #equipmentList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+}
+
+.shop-item {
+  display: flex;
+  gap: 12px;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 10px 12px;
+  align-items: center;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+}
+
+.shop-section-label {
+  font-size: 12px;
+  font-weight: bold;
+  color: #d8cdb8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 6px;
+  padding-left: 2px;
+}
+
+.shop-item-icon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+}
+
+.shop-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.shop-item-name {
+  color: #fff;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.shop-item-desc {
+  color: #9fb0bd;
+  font-size: 11.5px;
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+.shop-item-status {
+  color: #ffd257;
+  font-size: 11.5px;
+  margin-top: 4px;
+}
+
+.shop-item-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.shop-btn {
+  background: #ffc93f;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #4a2e05;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.35);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.shop-btn.secondary {
+  background: rgba(255,255,255,0.16);
+  color: #fff;
+}
+
+.shop-btn:disabled {
+  background: rgba(255,255,255,0.12);
+  color: #7a8894;
+  cursor: default;
+  border-color: var(--ink-soft);
+  box-shadow: none;
+}
+
+.shop-btn:not(:disabled):active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 rgba(0,0,0,0.35);
+}
+
+#catchPopup.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  top: 22%;
+}
+
+#gamblingButton {
+  background: rgba(20,42,28,0.9);
+  border-color: rgba(90,210,140,0.55);
+}
+
+#gamblingButton:hover {
+  background: rgba(28,58,38,0.95);
+}
+
+#gamblingSubTabs, #blackMarketSubTabs, #bankSubTabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+#blackMarketSellView, #blackMarketBuyView {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+#blackMarketBuyList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.subtab-btn {
+  flex: 1;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 13px;
+  font-weight: bold;
+  color: #b9c6d4;
+  cursor: pointer;
+}
+
+.subtab-btn.active {
+  background: #4ecb79;
+  border-color: var(--ink);
+  color: #0d2915;
+}
+
+#slotsView, #blackjackView, #predictView, #savingsView, #loansView {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+#predictView {
+  width: 100%;
+  align-items: stretch;
+}
+
+#slotsReels {
+  display: flex;
+  gap: 10px;
+  background: rgba(0,0,0,0.3);
+  border: 2px solid rgba(255,255,255,0.25);
+  border-radius: 12px;
+  padding: 16px 14px;
+}
+
+.slot-reel {
+  width: 58px;
+  height: 58px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+}
+
+/* bank: big balance readout in the spot the slot reels / card table take */
+.bank-balance {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0,0,0,0.3);
+  border: 2px solid rgba(255,255,255,0.25);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.bank-balance-label {
+  color: #b9c6d4;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.bank-balance-amount {
+  color: #4ecb79;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.bank-balance.loan .bank-balance-amount {
+  color: #ff8a8a;
+}
+
+.bank-status {
+  min-height: 16px;
+  font-size: 12px;
+  color: #b9c6d4;
+  text-align: center;
+}
+
+.bank-status.alert {
+  color: #ff8a8a;
+  font-weight: bold;
+}
+
+.bank-action-row {
+  align-self: stretch;
+}
+
+.gamble-message {
+  min-height: 18px;
+  font-size: 13px;
+  font-weight: bold;
+  color: #ffd257;
+  text-align: center;
+}
+
+#predictDropdowns {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.predict-select {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #fff;
+  width: 100%;
+}
+
+/* the open dropdown list is rendered by the OS/browser with its own white
+   background regardless of the select's own styling — set explicit dark
+   text so the options aren't white-on-white when the list pops open */
+.predict-select option {
+  color: #1a1a1a;
+  background: #fff;
+}
+
+.gamble-bet-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.gamble-step-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 1.5px 1.5px 0 rgba(0,0,0,0.35);
+}
+
+.gamble-step-btn:active {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 0 0 0 rgba(0,0,0,0.35);
+}
+
+/* pill-shaped "bet everything" button at the end of each bet row */
+.gamble-allin-btn {
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 16px;
+  border: 2px solid var(--ink);
+  background: #e0453a;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 1.5px 1.5px 0 rgba(0,0,0,0.35);
+}
+
+.gamble-allin-btn:active {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 0 0 0 rgba(0,0,0,0.35);
+}
+
+.gamble-allin-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.gamble-bet-amount {
+  color: #fff;
+  font-weight: bold;
+  font-size: 14px;
+  min-width: 60px;
+  text-align: center;
+}
+
+.gamble-action-btn {
+  background: #4ecb79;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #0d2915;
+  cursor: pointer;
+  width: 100%;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.gamble-action-btn.secondary {
+  background: rgba(255,255,255,0.16);
+  color: #fff;
+}
+
+.gamble-action-btn:disabled {
+  background: rgba(255,255,255,0.12);
+  color: #7a8894;
+  cursor: default;
+  border-color: var(--ink-soft);
+  box-shadow: none;
+}
+
+.gamble-action-btn:not(:disabled):active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 rgba(0,0,0,0.4);
+}
+
+#bjActionControls {
+  gap: 10px;
+}
+#bjActionControls .gamble-action-btn {
+  width: auto;
+  flex: 1;
+}
+
+.bj-label {
+  color: #9fb0bd;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  align-self: flex-start;
+}
+
+.bj-hand {
+  display: flex;
+  gap: 6px;
+  min-height: 62px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.bj-score {
+  color: #d8e0e8;
+  font-size: 12px;
+  margin-top: -4px;
+}
+
+.bj-card {
+  width: 40px;
+  height: 56px;
+  background: #f0ead8;
+  border: 2.5px solid var(--ink);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+}
+
+.bj-card .bj-rank {
+  font-size: 14px;
+}
+
+.bj-card .bj-suit {
+  font-size: 16px;
+}
+
+.bj-card.bj-dark {
+  color: #1c2430;
+}
+
+.bj-card.bj-bright {
+  color: #d1453d;
+}
+
+.bj-card-back {
+  background: linear-gradient(135deg, #2c5c8a, #1c3a58);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+/* dev-only cheat menu — not styled to match the rest of the game on purpose */
+#cheatPanel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  width: 260px;
+  max-height: 70%;
+  overflow-y: auto;
+  background: #000;
+  border: 2px solid #0f0;
+  padding: 10px;
+  z-index: 60;
+  font-family: monospace;
+  color: #0f0;
+}
+
+#cheatPanel.open {
+  display: flex;
+}
+
+#bottleNotePanel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  width: 260px;
+  max-height: 70%;
+  overflow-y: auto;
+  background: linear-gradient(160deg, #f4e6c4, #e8d6a8);
+  border: 2px solid #a8834a;
+  border-radius: 6px;
+  padding: 16px;
+  z-index: 60;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+#bottleNotePanel.open {
+  display: flex;
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+#bottleNotePanel .panel-header {
+  color: #5a3f1e;
+  margin-bottom: 0;
+}
+
+.bottle-note-text {
+  color: #4a3418;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+#bottleNotePanel .gamble-action-btn.secondary {
+  background: rgba(90,63,30,0.15);
+  color: #4a3418;
+}
+
+#manualPanel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 460px;
+  max-width: calc(100% - 24px);
+  max-height: 76%;
+  z-index: 60;
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+#manualPanel.open {
+  display: flex;
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* the book itself — a dark "cover" frame around two parchment pages meeting
+   at a shadowed spine, so it actually reads as an open book rather than a
+   generic panel */
+.manual-book {
+  display: flex;
+  width: 100%;
+  min-height: 0;
+  flex: 1;
+  background: linear-gradient(160deg, #3a2412, #1e130a);
+  border-radius: 8px;
+  padding: 10px;
+  gap: 3px;
+  box-shadow: 0 14px 44px rgba(0,0,0,0.65);
+}
+
+.manual-page {
+  flex: 1;
+  min-width: 0;
+  background: linear-gradient(160deg, #f4e6c4, #e6d6a8);
+  padding: 14px;
+  overflow-y: auto;
+  color: #4a3418;
+}
+
+.manual-page-left {
+  border-radius: 5px 2px 2px 5px;
+  box-shadow: inset -10px 0 14px -10px rgba(0,0,0,0.4);
+}
+
+.manual-page-right {
+  border-radius: 2px 5px 5px 2px;
+  box-shadow: inset 10px 0 14px -10px rgba(0,0,0,0.4);
+}
+
+.manual-book-title {
+  font-weight: bold;
+  font-size: 15px;
+  color: #3a2412;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid rgba(74,52,24,0.25);
+}
+
+#manualBookmarks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.manual-bookmark-btn {
+  background: rgba(74,52,24,0.08);
+  border: 1px solid rgba(74,52,24,0.25);
+  border-radius: 6px;
+  padding: 7px 9px;
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+  color: #4a3418;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  text-align: left;
+}
+
+/* NET_ICON_SVG hardcodes white strokes for the dark shop panels — override
+   to the manual's dark ink color so it's actually visible on parchment */
+.manual-bookmark-btn svg circle, .manual-bookmark-btn svg line, .manual-bookmark-btn svg path,
+#manualContent svg circle, #manualContent svg line, #manualContent svg path {
+  stroke: #4a3418;
+}
+
+.manual-bookmark-btn.active {
+  background: rgba(74,52,24,0.18);
+  border-color: #4a3418;
+  font-weight: bold;
+}
+
+#manualContent {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+#manualContent h3 {
+  margin: 0 0 8px;
+  color: #2a1a0a;
+  font-size: 16px;
+}
+
+#cheatPanel .panel-header {
+  color: #0f0;
+}
+
+#cheatList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cheat-btn {
+  background: #111;
+  border: 1px solid #0f0;
+  color: #0f0;
+  font-family: monospace;
+  padding: 6px 8px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.cheat-btn:hover {
+  background: #0f0;
+  color: #000;
+}

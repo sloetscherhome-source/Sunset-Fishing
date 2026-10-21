@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Sunset Fishing</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="wrap">
+    <div id="krakenVignette"></div>
+    <div id="hud">
+      <div id="scoreColumn">
+        <div id="score">🪙 0</div>
+        <div id="challengeTimer"></div>
+        <div id="loanWarning"></div>
+      </div>
+      <div id="messageColumn">
+        <button id="manualButton" aria-label="Open fishing manual">📖</button>
+        <button id="toolSwapButton" aria-label="Swap equipment" style="display:none;">
+          <span id="toolSwapIcon">🥅</span>
+        </button>
+      </div>
+    </div>
+    <div id="reelUI">
+      <div class="reel-label">HOLD to reel it in!</div>
+      <div class="reel-row">
+        <div id="reelTrack" class="reel-track">
+          <div id="reelFish" class="reel-fish"></div>
+          <div id="reelZone" class="reel-zone"></div>
+        </div>
+        <div id="reelProgressTrack" class="reel-progress-track">
+          <div id="reelProgressFill" class="reel-progress-fill"></div>
+        </div>
+      </div>
+    </div>
+    <div id="netReelUI">
+      <div class="reel-label">HOLD to swing the net through it!</div>
+      <div class="swoop-track" id="swoopTrack">
+        <div id="swoopFish" class="swoop-fish"></div>
+        <div id="swoopZone" class="swoop-zone"></div>
+      </div>
+      <div id="swoopProgressTrack" class="swoop-progress-track">
+        <div id="swoopProgressFill" class="swoop-progress-fill"></div>
+      </div>
+    </div>
+    <div id="krakenUI">
+      <div class="reel-label">Time your heave to the surge!</div>
+      <div class="kraken-track" id="krakenTrack">
+        <div id="krakenZone" class="kraken-heave-zone"></div>
+        <div id="krakenMarker" class="kraken-marker"></div>
+      </div>
+      <div class="kraken-buttons">
+        <button id="krakenHeaveBtn" class="kraken-tap-btn kraken-heave-btn">HEAVE!</button>
+      </div>
+      <div class="swoop-progress-track">
+        <div id="krakenProgressFill" class="swoop-progress-fill"></div>
+      </div>
+    </div>
+    <div id="krakenFrenzyUI">
+      <div class="reel-label">Hit the matching direction — fast!</div>
+      <div id="krakenPromptGlyph" class="kraken-prompt-glyph">▲</div>
+      <div class="kraken-frenzy-timer-track">
+        <div id="krakenFrenzyTimerFill" class="kraken-frenzy-timer-fill"></div>
+      </div>
+      <div class="kraken-frenzy-buttons">
+        <button class="kraken-dir-btn" data-dir="up">▲</button>
+        <button class="kraken-dir-btn" data-dir="left">◄</button>
+        <button class="kraken-dir-btn" data-dir="down">▼</button>
+        <button class="kraken-dir-btn" data-dir="right">►</button>
+      </div>
+      <div class="swoop-progress-track">
+        <div id="krakenFrenzyProgressFill" class="swoop-progress-fill"></div>
+      </div>
+    </div>
+    <div id="catchPopup"></div>
+    <div id="cheatPanel">
+      <div class="panel-header"><span>Cheats</span></div>
+      <div id="cheatList"></div>
+      <button id="cheatCloseBtn" class="gamble-action-btn secondary">Close</button>
+    </div>
+    <div id="bottleNotePanel">
+      <div class="panel-header"><span>📜 A Note in the Bottle</span></div>
+      <div id="bottleNoteText" class="bottle-note-text"></div>
+      <button id="bottleNoteCloseBtn" class="gamble-action-btn secondary">Close</button>
+    </div>
+    <div id="manualPanel">
+      <div class="manual-book">
+        <div class="manual-page manual-page-left">
+          <div class="manual-book-title">📖 Fishing Manual</div>
+          <div id="manualBookmarks"></div>
+        </div>
+        <div class="manual-page manual-page-right">
+          <div id="manualContent"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="menuBackdrop"></div>
+    <div id="catalogPanel">
+      <div class="panel-header">
+        <span>Catch Index</span>
+        <span id="catalogProgress"></span>
+      </div>
+      <div id="catalogGrid"></div>
+    </div>
+    <div id="logPanel">
+      <div class="panel-header">
+        <span>Fishing Log</span>
+        <span id="logCount"></span>
+      </div>
+      <div id="logList"></div>
+    </div>
+    <div id="sellPanel">
+      <div class="panel-header">
+        <span>Sell Catch</span>
+      </div>
+      <div id="sellStats"></div>
+      <button id="sellButton">Sell all for <span id="sellAmount">0</span> 🪙</button>
+    </div>
+    <div id="foodPanel">
+      <div class="panel-header">
+        <span>Fish Food</span>
+      </div>
+      <div id="foodList"></div>
+    </div>
+    <div id="equipmentPanel">
+      <div class="panel-header">
+        <span>Equipment</span>
+      </div>
+      <div id="equipmentList"></div>
+    </div>
+    <div id="bankPanel">
+      <div class="panel-header">
+        <span>🏦 Bank</span>
+      </div>
+      <div id="bankSubTabs">
+        <button id="savingsTabBtn" class="subtab-btn">Savings</button>
+        <button id="loansTabBtn" class="subtab-btn">Loans</button>
+      </div>
+      <div id="savingsView">
+        <div class="bank-balance">
+          <div class="bank-balance-label">🐷 Savings</div>
+          <div class="bank-balance-amount"><span id="savingsBalance">0</span> 🪙</div>
+        </div>
+        <div class="gamble-message">Earns 20% interest over time, save wisely!</div>
+        <div id="savingsStatus" class="bank-status"></div>
+        <div class="gamble-bet-row">
+          <button id="savingsAmtDown100" class="gamble-step-btn">&lt;&lt;</button>
+          <button id="savingsAmtDown50" class="gamble-step-btn">&lt;</button>
+          <span class="gamble-bet-amount"><span id="savingsAmount">50</span> 🪙</span>
+          <button id="savingsAmtUp50" class="gamble-step-btn">&gt;</button>
+          <button id="savingsAmtUp100" class="gamble-step-btn">&gt;&gt;</button>
+          <button id="savingsMax" class="gamble-allin-btn">MAX</button>
+        </div>
+        <div class="gamble-bet-row bank-action-row">
+          <button id="depositBtn" class="gamble-action-btn">Deposit</button>
+          <button id="withdrawBtn" class="gamble-action-btn secondary">Withdraw</button>
+        </div>
+      </div>
+      <div id="loansView" style="display:none;">
+        <div class="bank-balance loan">
+          <div class="bank-balance-label">💸 Owed</div>
+          <div class="bank-balance-amount"><span id="loanOwed">0</span> 🪙</div>
+        </div>
+        <div class="gamble-message">Owed amount grows 10% over time, leave it unpaid and there will be consequences</div>
+        <div id="loanStatus" class="bank-status"></div>
+        <div class="gamble-bet-row">
+          <button id="loanAmtDown100" class="gamble-step-btn">&lt;&lt;</button>
+          <button id="loanAmtDown50" class="gamble-step-btn">&lt;</button>
+          <span class="gamble-bet-amount"><span id="loanAmount">50</span> 🪙</span>
+          <button id="loanAmtUp50" class="gamble-step-btn">&gt;</button>
+          <button id="loanAmtUp100" class="gamble-step-btn">&gt;&gt;</button>
+          <button id="loanMax" class="gamble-allin-btn">MAX</button>
+        </div>
+        <button id="loanActionBtn" class="gamble-action-btn">Borrow</button>
+      </div>
+    </div>
+    <div id="blackMarketPanel">
+      <div class="panel-header">
+        <span>🏴‍☠️ Black Market</span>
+      </div>
+      <div id="blackMarketSubTabs">
+        <button id="blackMarketSellTabBtn" class="subtab-btn">Sell</button>
+        <button id="blackMarketBuyTabBtn" class="subtab-btn">Buy</button>
+      </div>
+      <div id="blackMarketSellView">
+        <div id="blackMarketStats"></div>
+        <button id="blackMarketSellButton">Unload for <span id="blackMarketAmount">0</span> 🪙</button>
+      </div>
+      <div id="blackMarketBuyView">
+        <div id="blackMarketBuyList"></div>
+      </div>
+    </div>
+    <div id="hirePanel">
+      <div class="panel-header">
+        <span>Hire a Fisherman</span>
+      </div>
+      <div id="hireList"></div>
+    </div>
+    <div id="gamblingPanel">
+      <div class="panel-header">
+        <span>🎰 Gambling</span>
+      </div>
+      <div id="gamblingSubTabs">
+        <button id="slotsTabBtn" class="subtab-btn">Slots</button>
+        <button id="blackjackTabBtn" class="subtab-btn">Blackjack</button>
+        <button id="predictTabBtn" class="subtab-btn">Next Catch</button>
+      </div>
+      <div id="slotsView">
+        <div id="slotsReels">
+          <div class="slot-reel" id="slotsReel1">🐟</div>
+          <div class="slot-reel" id="slotsReel2">🐟</div>
+          <div class="slot-reel" id="slotsReel3">🐟</div>
+        </div>
+        <div id="slotsMessage" class="gamble-message"></div>
+        <div class="gamble-bet-row">
+          <button id="slotsBetDown100" class="gamble-step-btn">&lt;&lt;</button>
+          <button id="slotsBetDown50" class="gamble-step-btn">&lt;</button>
+          <span class="gamble-bet-amount"><span id="slotsBetAmount">50</span> 🪙</span>
+          <button id="slotsBetUp50" class="gamble-step-btn">&gt;</button>
+          <button id="slotsBetUp100" class="gamble-step-btn">&gt;&gt;</button>
+          <button id="slotsAllIn" class="gamble-allin-btn">ALL IN</button>
+        </div>
+        <button id="slotsSpinBtn" class="gamble-action-btn">Spin (50 🪙)</button>
+      </div>
+      <div id="blackjackView" style="display:none;">
+        <div class="bj-label">Dealer</div>
+        <div id="bjDealerRow" class="bj-hand"></div>
+        <div id="bjDealerScore" class="bj-score"></div>
+        <div class="bj-label">You</div>
+        <div id="bjPlayerRow" class="bj-hand"></div>
+        <div id="bjPlayerScore" class="bj-score"></div>
+        <div id="bjMessage" class="gamble-message"></div>
+        <div class="gamble-bet-row" id="bjBetControls">
+          <button id="bjBetDown100" class="gamble-step-btn">&lt;&lt;</button>
+          <button id="bjBetDown50" class="gamble-step-btn">&lt;</button>
+          <span class="gamble-bet-amount"><span id="bjBetAmount">50</span> 🪙</span>
+          <button id="bjBetUp50" class="gamble-step-btn">&gt;</button>
+          <button id="bjBetUp100" class="gamble-step-btn">&gt;&gt;</button>
+          <button id="bjAllIn" class="gamble-allin-btn">ALL IN</button>
+        </div>
+        <button id="bjDealBtn" class="gamble-action-btn">Deal (50 🪙)</button>
+        <div class="gamble-bet-row" id="bjActionControls" style="display:none;">
+          <button id="bjHitBtn" class="gamble-action-btn">Hit</button>
+          <button id="bjStandBtn" class="gamble-action-btn secondary">Stand</button>
+        </div>
+      </div>
+      <div id="predictView" style="display:none;">
+        <div id="predictDropdowns"></div>
+        <div id="predictInfo" class="gamble-message"></div>
+        <div class="gamble-bet-row">
+          <button id="predictBetDown100" class="gamble-step-btn">&lt;&lt;</button>
+          <button id="predictBetDown50" class="gamble-step-btn">&lt;</button>
+          <span class="gamble-bet-amount"><span id="predictBetAmount">50</span> 🪙</span>
+          <button id="predictBetUp50" class="gamble-step-btn">&gt;</button>
+          <button id="predictBetUp100" class="gamble-step-btn">&gt;&gt;</button>
+          <button id="predictAllIn" class="gamble-allin-btn">ALL IN</button>
+        </div>
+        <button id="predictPlaceBtn" class="gamble-action-btn">Place Bet (50 🪙)</button>
+      </div>
+    </div>
+    <div id="challengesPanel">
+      <div class="panel-header">
+        <span>🏆 Challenges</span>
+      </div>
+      <div id="challengesList"></div>
+    </div>
+
+    <div id="menuStack">
+      <button id="indexButton" class="menu-stack-btn" style="--i:0" aria-label="Open catch index" title="Catch Index">
+        <svg viewBox="0 0 24 24" width="22" height="22"><rect x="3" y="3" width="8" height="8" rx="1.5" fill="#fff" stroke="#1a1410" stroke-width="1"/><rect x="13" y="3" width="8" height="8" rx="1.5" fill="#fff" stroke="#1a1410" stroke-width="1"/><rect x="3" y="13" width="8" height="8" rx="1.5" fill="#fff" stroke="#1a1410" stroke-width="1"/><rect x="13" y="13" width="8" height="8" rx="1.5" fill="#fff" stroke="#1a1410" stroke-width="1"/></svg>
+      </button>
+      <button id="logButton" class="menu-stack-btn" style="--i:1" aria-label="Open fishing log" title="Fishing Log">
+        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 3h14v18l-7-3-7 3V3z" fill="#fff" stroke="#1a1410" stroke-width="1"/></svg>
+      </button>
+      <button id="sellButtonToggle" class="menu-stack-btn" style="--i:2" aria-label="Sell your catch" title="Sell Catch">
+        <svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="9" fill="#ffd257" stroke="#1a1410" stroke-width="1.4"/><text x="12" y="16.5" font-size="12" font-weight="bold" text-anchor="middle" fill="#7a5b0a">$</text></svg>
+      </button>
+      <button id="foodButton" class="menu-stack-btn" style="--i:3" aria-label="Open fish food shop" title="Fish Food">
+        <span style="font-size:22px;line-height:1;">🪱</span>
+      </button>
+      <button id="equipmentButton" class="menu-stack-btn" style="--i:4" aria-label="Open equipment shop" title="Equipment">
+        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 8l1.5-4h13L20 8v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1-2 2 2 2 0 0 1-2-2V8z" fill="#fff" stroke="#1a1410" stroke-width="1"/><path d="M5 10.8V20h14v-9.2" stroke="#1a1410" stroke-width="2.4" fill="none"/><path d="M5 10.8V20h14v-9.2" stroke="#fff" stroke-width="1.6" fill="none"/></svg>
+      </button>
+      <button id="hireButton" class="menu-stack-btn unavailable" style="--i:5" aria-label="Hire a fisherman" title="Hire a Fisherman">
+        <span style="font-size:22px;line-height:1;">🤝</span>
+      </button>
+      <button id="gamblingButton" class="menu-stack-btn" style="--i:6" aria-label="Open gambling" title="Gambling">
+        <span style="font-size:22px;line-height:1;">🎰</span>
+      </button>
+      <button id="challengesButton" class="menu-stack-btn" style="--i:7" aria-label="Open challenges" title="Challenges">
+        <span style="font-size:22px;line-height:1;">🏆</span>
+      </button>
+      <button id="bankButton" class="menu-stack-btn" style="--i:8" aria-label="Open bank" title="Bank">
+        <span style="font-size:22px;line-height:1;">🏦</span>
+      </button>
+      <button id="blackMarketButton" class="menu-stack-btn unavailable" style="--i:9" aria-label="Black market boat" title="Black Market">
+        <span style="font-size:22px;line-height:1;">🏴‍☠️</span>
+      </button>
+    </div>
+    <button id="menuButton" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" width="26" height="26"><path d="M4 5h16M4 12h16M4 19h10" stroke="#1a1410" stroke-width="4.2" stroke-linecap="round"/><path d="M4 5h16M4 12h16M4 19h10" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
