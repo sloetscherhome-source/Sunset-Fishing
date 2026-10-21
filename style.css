@@ -1505,6 +1505,42 @@ canvas {
   font-size: 16px;
 }
 
+/* reset sits apart from the real entries at the bottom, inked in red */
+.manual-bookmark-btn.manual-reset-bookmark {
+  margin-top: 10px;
+  color: #8a2a1a;
+  border-color: rgba(138,42,26,0.4);
+  background: rgba(138,42,26,0.08);
+}
+.manual-bookmark-btn.manual-reset-bookmark.active {
+  background: rgba(138,42,26,0.18);
+  border-color: #8a2a1a;
+}
+
+.manual-danger-btn, .manual-cancel-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.manual-danger-btn {
+  background: #b8432c;
+  border: 2px solid #5a1a0e;
+  color: #fff;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+}
+.manual-danger-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 rgba(0,0,0,0.3); }
+.manual-cancel-btn {
+  background: rgba(74,52,24,0.08);
+  border: 1px solid rgba(74,52,24,0.35);
+  color: #4a3418;
+}
+
 #cheatPanel .panel-header {
   color: #0f0;
 }

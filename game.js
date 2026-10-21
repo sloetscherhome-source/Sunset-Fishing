@@ -5,7 +5,7 @@
 
 // bumped on every published update — a save from any other version is wiped
 // on load, so everyone starts fresh once after each update
-const SAVE_VERSION = 3;
+const SAVE_VERSION = 4;
 (function resetSaveIfOutdated() {
   try {
     if (localStorage.getItem('sunsetFishing.saveVersion') === String(SAVE_VERSION)) return;
@@ -1979,27 +1979,93 @@ const manualContentEl = document.getElementById('manualContent');
 let manualSelectedIndex = 0;
 let manualOpen = false;
 
+// the last bookmark isn't an entry — it's the reset page, which walks
+// through two warnings before actually wiping anything
+const MANUAL_RESET_INDEX = MANUAL_ENTRIES.length;
+let manualResetStep = 0; // 0 = intro, 1 = first warning, 2 = final warning
+let progressWiped = false; // stops saveExtras() writing the old state back on the way out
+
+const MANUAL_RESET_PAGES = [
+  {
+    text: 'Start the game over from scratch. This wipes all of your saved progress on this device.',
+    confirm: 'Reset Progress'
+  },
+  {
+    text: '⚠️ <b>Are you sure?</b><br>You will lose all of your coins, every catch in your log and index, your rods, net, food, hat and radio, your bank savings and loans, and your challenge progress.',
+    confirm: 'Yes, I’m sure'
+  },
+  {
+    text: '🛑 <b>Last warning!</b><br>This cannot be undone. Once it’s gone, it’s gone for good.',
+    confirm: 'Reset everything'
+  }
+];
+
+function wipeProgress() {
+  progressWiped = true;
+  try {
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith('sunsetFishing.') && k !== 'sunsetFishing.saveVersion')
+      .forEach((k) => localStorage.removeItem(k));
+  } catch (e) {}
+  location.reload();
+}
+
+function renderManualReset() {
+  const page = MANUAL_RESET_PAGES[manualResetStep];
+  manualContentEl.innerHTML = `<h3>⚠️ Reset Progress</h3><p>${page.text}</p>`;
+  const confirmBtn = document.createElement('button');
+  confirmBtn.className = 'manual-danger-btn';
+  confirmBtn.textContent = page.confirm;
+  confirmBtn.addEventListener('click', () => {
+    if (manualResetStep < MANUAL_RESET_PAGES.length - 1) {
+      manualResetStep++;
+      renderManualReset();
+    } else {
+      wipeProgress();
+    }
+  });
+  manualContentEl.appendChild(confirmBtn);
+  if (manualResetStep > 0) {
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'manual-cancel-btn';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.addEventListener('click', () => {
+      manualResetStep = 0;
+      renderManualReset();
+    });
+    manualContentEl.appendChild(cancelBtn);
+  }
+}
+
 function renderManualContent() {
-  const entry = MANUAL_ENTRIES[manualSelectedIndex];
-  manualContentEl.innerHTML = `<h3>${entry.icon} ${entry.name}</h3>${entry.desc}`;
+  if (manualSelectedIndex === MANUAL_RESET_INDEX) {
+    renderManualReset();
+  } else {
+    const entry = MANUAL_ENTRIES[manualSelectedIndex];
+    manualContentEl.innerHTML = `<h3>${entry.icon} ${entry.name}</h3>${entry.desc}`;
+  }
   Array.from(manualBookmarksEl.children).forEach((btn, i) => btn.classList.toggle('active', i === manualSelectedIndex));
 }
 
-MANUAL_ENTRIES.forEach((entry, i) => {
+function addManualBookmark(icon, name, index, extraClass) {
   const btn = document.createElement('button');
-  btn.className = 'manual-bookmark-btn';
-  btn.innerHTML = `<span>${entry.icon}</span><span>${entry.name}</span>`;
+  btn.className = 'manual-bookmark-btn' + (extraClass ? ' ' + extraClass : '');
+  btn.innerHTML = `<span>${icon}</span><span>${name}</span>`;
   btn.addEventListener('click', () => {
-    manualSelectedIndex = i;
+    manualSelectedIndex = index;
+    manualResetStep = 0; // always starts back at the intro, never mid-warning
     renderManualContent();
   });
   manualBookmarksEl.appendChild(btn);
-});
+}
+MANUAL_ENTRIES.forEach((entry, i) => addManualBookmark(entry.icon, entry.name, i));
+addManualBookmark('⚠️', 'Reset Progress', MANUAL_RESET_INDEX, 'manual-reset-bookmark');
 
 // no Close button — closes by clicking outside it (the shared menu backdrop)
 // or by clicking the manual button again
 function openManual() {
   closeEverything();
+  manualResetStep = 0;
   renderManualContent();
   manualPanelEl.classList.add('open');
   manualOpen = true;
@@ -6655,6 +6721,7 @@ window.addEventListener('keyup', (e) => {
 const EXTRAS_KEY = 'sunsetFishing.extras';
 
 function saveExtras() {
+  if (progressWiped) return;
   try {
     localStorage.setItem(EXTRAS_KEY, JSON.stringify({
       hatOwned,
